@@ -249,12 +249,12 @@ def main():
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = model.to(device)
 
-    if opt.dpm_solver:
-        # sampler = DPMSolverSampler(model)
-    elif opt.plms:
-        sampler = PLMSSampler(model)
-    else:
-        sampler = DDIMSampler(model)
+    # if opt.dpm_solver:
+    #     # sampler = DPMSolverSampler(model)
+    # elif opt.plms:
+    #     sampler = PLMSSampler(model)
+    # else:
+    #     sampler = DDIMSampler(model)
 
     os.makedirs(opt.outdir, exist_ok=True)
     outpath = opt.outdir

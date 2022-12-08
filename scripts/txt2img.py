@@ -13,6 +13,7 @@ import time
 from pytorch_lightning import seed_everything
 from torch import autocast
 from contextlib import contextmanager, nullcontext
+import pickle
 
 from ldm.util import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
@@ -285,6 +286,7 @@ def main():
     if opt.fixed_code:
         start_code = torch.randn([opt.n_samples, opt.C, opt.H // opt.f, opt.W // opt.f], device=device)
 
+    fileidx = 0
     precision_scope = autocast if opt.precision=="autocast" else nullcontext
     with torch.no_grad():
         with precision_scope("cuda"):
@@ -299,50 +301,53 @@ def main():
                         if isinstance(prompts, tuple):
                             prompts = list(prompts)
                         c = model.get_learned_conditioning(prompts)
-                        shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
-                        samples_ddim, _ = sampler.sample(S=opt.ddim_steps,
-                                                         conditioning=c,
-                                                         batch_size=opt.n_samples,
-                                                         shape=shape,
-                                                         verbose=False,
-                                                         unconditional_guidance_scale=opt.scale,
-                                                         unconditional_conditioning=uc,
-                                                         eta=opt.ddim_eta,
-                                                         x_T=start_code)
+                        file = open(f"data/condition/{fileidx}.pkl")
+                        fileidx += 1
+                        pickle.dump(c, file)
+                #         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
+                #         samples_ddim, _ = sampler.sample(S=opt.ddim_steps,
+                #                                          conditioning=c,
+                #                                          batch_size=opt.n_samples,
+                #                                          shape=shape,
+                #                                          verbose=False,
+                #                                          unconditional_guidance_scale=opt.scale,
+                #                                          unconditional_conditioning=uc,
+                #                                          eta=opt.ddim_eta,
+                #                                          x_T=start_code)
 
-                        x_samples_ddim = model.decode_first_stage(samples_ddim)
-                        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
-                        x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
+                #         x_samples_ddim = model.decode_first_stage(samples_ddim)
+                #         x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                #         x_samples_ddim = x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy()
 
-                        x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
+                #         x_checked_image, has_nsfw_concept = check_safety(x_samples_ddim)
 
-                        x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
+                #         x_checked_image_torch = torch.from_numpy(x_checked_image).permute(0, 3, 1, 2)
 
-                        if not opt.skip_save:
-                            for x_sample in x_checked_image_torch:
-                                x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                                img = Image.fromarray(x_sample.astype(np.uint8))
-                                img = put_watermark(img, wm_encoder)
-                                img.save(os.path.join(sample_path, f"{base_count:05}.png"))
-                                base_count += 1
+                #         if not opt.skip_save:
+                #             for x_sample in x_checked_image_torch:
+                #                 x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                #                 img = Image.fromarray(x_sample.astype(np.uint8))
+                #                 img = put_watermark(img, wm_encoder)
+                #                 img.save(os.path.join(sample_path, f"{base_count:05}.png"))
+                #                 base_count += 1
 
-                        if not opt.skip_grid:
-                            all_samples.append(x_checked_image_torch)
+                #         if not opt.skip_grid:
+                #             all_samples.append(x_checked_image_torch)
 
-                if not opt.skip_grid:
-                    # additionally, save as grid
-                    grid = torch.stack(all_samples, 0)
-                    grid = rearrange(grid, 'n b c h w -> (n b) c h w')
-                    grid = make_grid(grid, nrow=n_rows)
+                # if not opt.skip_grid:
+                #     # additionally, save as grid
+                #     grid = torch.stack(all_samples, 0)
+                #     grid = rearrange(grid, 'n b c h w -> (n b) c h w')
+                #     grid = make_grid(grid, nrow=n_rows)
 
-                    # to image
-                    grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
-                    img = Image.fromarray(grid.astype(np.uint8))
-                    img = put_watermark(img, wm_encoder)
-                    img.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
-                    grid_count += 1
+                #     # to image
+                #     grid = 255. * rearrange(grid, 'c h w -> h w c').cpu().numpy()
+                #     img = Image.fromarray(grid.astype(np.uint8))
+                #     img = put_watermark(img, wm_encoder)
+                #     img.save(os.path.join(outpath, f'grid-{grid_count:04}.png'))
+                #     grid_count += 1
 
-                toc = time.time()
+                # toc = time.time()
 
     print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
           f" \nEnjoy.")

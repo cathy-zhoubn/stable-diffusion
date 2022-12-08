@@ -5,7 +5,7 @@ import numpy as np
 from omegaconf import OmegaConf
 from PIL import Image
 from tqdm import tqdm, trange
-from imwatermark import WatermarkEncoder
+# from imwatermark import WatermarkEncoder
 from itertools import islice
 from einops import rearrange
 from torchvision.utils import make_grid
@@ -67,12 +67,12 @@ def load_model_from_config(config, ckpt, verbose=False):
     return model
 
 
-def put_watermark(img, wm_encoder=None):
-    if wm_encoder is not None:
-        img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-        img = wm_encoder.encode(img, 'dwtDct')
-        img = Image.fromarray(img[:, :, ::-1])
-    return img
+# def put_watermark(img, wm_encoder=None):
+#     if wm_encoder is not None:
+#         img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+#         img = wm_encoder.encode(img, 'dwtDct')
+#         img = Image.fromarray(img[:, :, ::-1])
+#     return img
 
 
 def load_replacement(x):
@@ -260,9 +260,9 @@ def main():
     outpath = opt.outdir
 
     print("Creating invisible watermark encoder (see https://github.com/ShieldMnt/invisible-watermark)...")
-    wm = "StableDiffusionV1"
-    wm_encoder = WatermarkEncoder()
-    wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
+    # wm = "StableDiffusionV1"
+    # wm_encoder = WatermarkEncoder()
+    # wm_encoder.set_watermark('bytes', wm.encode('utf-8'))
 
     batch_size = opt.n_samples
     n_rows = opt.n_rows if opt.n_rows > 0 else batch_size

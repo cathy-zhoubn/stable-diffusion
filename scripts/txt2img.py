@@ -250,7 +250,7 @@ def main():
     model = model.to(device)
 
     if opt.dpm_solver:
-        sampler = DPMSolverSampler(model)
+        # sampler = DPMSolverSampler(model)
     elif opt.plms:
         sampler = PLMSSampler(model)
     else:

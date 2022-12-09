@@ -188,7 +188,7 @@ def main():
     parser.add_argument(
         "--n_samples",
         type=int,
-        default=3,
+        default=1,
         help="how many samples to produce for each given prompt. A.k.a. batch size",
     )
     parser.add_argument(
@@ -269,7 +269,9 @@ def main():
     if not opt.from_file:
         prompt = opt.prompt
         assert prompt is not None
-        data = [batch_size * [prompt]]
+        original_prompt = f"a picture of a group of {prompt}s"
+        new_prompt = f"a picture of a diverse group of {prompt}s"
+        data = [original_prompt, new_prompt]
 
     else:
         print(f"reading prompts from {opt.from_file}")
@@ -286,7 +288,6 @@ def main():
     if opt.fixed_code:
         start_code = torch.randn([opt.n_samples, opt.C, opt.H // opt.f, opt.W // opt.f], device=device)
 
-    fileidx = 0
     precision_scope = autocast if opt.precision=="autocast" else nullcontext
     with torch.no_grad():
         with precision_scope("cuda"):
@@ -294,8 +295,7 @@ def main():
                 tic = time.time()
                 all_samples = list()
                 for n in trange(opt.n_iter, desc="Sampling"):
-                    for prompts in tqdm(data, desc="data"):
-                        print(prompt)
+                    for i, prompts in enumerate(data, desc="data"):
                         uc = None
                         if opt.scale != 1.0:
                             uc = model.get_learned_conditioning(batch_size * [""])
@@ -304,8 +304,10 @@ def main():
                         c = model.get_learned_conditioning(prompts)
                         print(type(c)) # size: [3 * 77 * 768]
                         print(c.shape)
-                        file = open(f"data/condition/{fileidx}.pkl", 'wb')
-                        fileidx += 1
+                        if i == 0:
+                            file = open(f"data/condition/{prompt}_orig.pkl", 'wb')
+                        else:
+                            file = open(f"data/condition/{prompt}_new.pkl", 'wb')
                         pickle.dump(c, file)
                 #         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
                 #         samples_ddim, _ = sampler.sample(S=opt.ddim_steps,

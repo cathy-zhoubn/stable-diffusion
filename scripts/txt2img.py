@@ -295,7 +295,7 @@ def main():
                 tic = time.time()
                 all_samples = list()
                 for n in trange(opt.n_iter, desc="Sampling"):
-                    for i, prompts in enumerate(data, desc="data"):
+                    for i, prompts in enumerate(data):
                         uc = None
                         print(prompts)
                         if opt.scale != 1.0:

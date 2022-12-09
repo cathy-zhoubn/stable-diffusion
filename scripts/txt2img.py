@@ -301,7 +301,7 @@ def main():
                         if isinstance(prompts, tuple):
                             prompts = list(prompts)
                         c = model.get_learned_conditioning(prompts)
-                        file = open(f"data/condition/{fileidx}.pkl", 'w')
+                        file = open(f"data/condition/{fileidx}.pkl", 'wb')
                         fileidx += 1
                         pickle.dump(c, file)
                 #         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]

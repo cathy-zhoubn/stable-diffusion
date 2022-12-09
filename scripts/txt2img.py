@@ -297,6 +297,7 @@ def main():
                 for n in trange(opt.n_iter, desc="Sampling"):
                     for i, prompts in enumerate(data, desc="data"):
                         uc = None
+                        print(prompts)
                         if opt.scale != 1.0:
                             uc = model.get_learned_conditioning(batch_size * [""])
                         if isinstance(prompts, tuple):

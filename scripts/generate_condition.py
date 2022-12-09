@@ -32,4 +32,4 @@ for l in occupations_raw:
     occupations.append(occ.replace("_", " "))
 
 for occ in occupations:
-    subprocess.run("python", "scripts/txt2img.py", "--prompt", occ, "--plms")
+    subprocess.call(["python", "scripts/txt2img.py", "--prompt", occ, "--plms"])
